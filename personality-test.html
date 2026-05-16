@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超准人格测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .start-screen, .question-screen, .result-screen {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(255, 154, 158, 0.3);
+            text-align: center;
+        }
+
+        .start-screen h1, .result-screen h2 {
+            font-size: 2rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa502);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .start-screen p, .question-screen .question-text {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff6b6b, #ffa502);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+        }
+
+        .question-screen .progress {
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .question-screen .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffa502);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .question-screen .question-number {
+            color: #ff6b6b;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #ffc0cb;
+            padding: 18px 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        .option-btn:hover {
+            background: linear-gradient(135deg, #fff0f0, #fff5e6);
+            border-color: #ff6b6b;
+            transform: translateX(10px);
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, #ffeaea, #fff0e6);
+            border-color: #ff6b6b;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.2);
+        }
+
+        .result-screen {
+            animation: fadeIn 0.8s ease;
+        }
+
+        .result-title {
+            font-size: 2.5rem !important;
+            margin-top: 20px !important;
+            animation: bounce 1s ease infinite;
+        }
+
+        .result-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .result-desc {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: confetti-fall linear infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="start-screen" id="startScreen">
+            <div style="font-size: 4rem; margin-bottom: 20px;">✨</div>
+            <h1>超准人格测试</h1>
+            <p>只需回答5个简单问题，就能揭示你的真实人格！</p>
+            <button class="btn" onclick="startTest()">开始测试</button>
+        </div>
+
+        <div class="question-screen hidden" id="questionScreen">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="question-number" id="questionNumber"></div>
+            <div class="question-text" id="questionText"></div>
+            <div class="options" id="optionsContainer"></div>
+            <button class="btn hidden" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+        </div>
+
+        <div class="result-screen hidden" id="resultScreen">
+            <div class="result-emoji">🎊</div>
+            <h2>你的人格测试结果是...</h2>
+            <div class="result-title">究极无敌机智天才善良可爱美丽sexy小泡芙</div>
+            <div class="result-desc">
+                你是一个集智慧与美貌于一身的人！<br>
+                机智如你，善良如你，可爱如你，美丽如你！<br>
+                你就是那个独一无二的小泡芙！🍡
+            </div>
+            <button class="btn" onclick="restartTest()">再测一次</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "当你感到开心时，你会怎么做？",
+                options: ["大声唱歌", "和朋友分享", "吃一顿大餐", "安静地微笑"]
+            },
+            {
+                question: "如果有一天你拥有超能力，你想要什么能力？",
+                options: ["读心术", "瞬间移动", "时间暂停", "隐身术"]
+            },
+            {
+                question: "你最喜欢的天气是？",
+                options: ["阳光明媚", "微风细雨", "雪花纷飞", "雷电交加"]
+            },
+            {
+                question: "周末你最喜欢做什么？",
+                options: ["追剧看电影", "逛街购物", "宅家睡觉", "户外运动"]
+            },
+            {
+                question: "如果用一种动物形容自己，你觉得是？",
+                options: ["可爱的猫咪", "忠诚的狗狗", "神秘的狐狸", "自由的小鸟"]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let selectedOption = null;
+
+        function startTest() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('questionNumber').textContent = `第 ${currentQuestion + 1} / ${questions.length} 题`;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            selectedOption = null;
+            document.getElementById('nextBtn').classList.add('hidden');
+
+            question.options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-btn';
+                optionBtn.textContent = option;
+                optionBtn.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionBtn);
+            });
+
+            updateProgress();
+        }
+
+        function selectOption(index) {
+            const options = document.querySelectorAll('.option-btn');
+            options.forEach((btn, i) => {
+                btn.classList.toggle('selected', i === index);
+            });
+            selectedOption = index;
+            document.getElementById('nextBtn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        function showResult() {
+            document.getElementById('questionScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            createConfetti();
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.backgroundColor = ['#ff6b6b', '#ffa502', '#ffc0cb', '#ff7eb3', '#ffd93d'][Math.floor(Math.random() * 5)];
+                confetti.style.animationDuration = `${3 + Math.random() * 4}s`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                document.body.appendChild(confetti);
+            }
+        }
+
+        function restartTest() {
+            currentQuestion = 0;
+            selectedOption = null;
+            document.querySelectorAll('.confetti').forEach(c => c.remove());
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
